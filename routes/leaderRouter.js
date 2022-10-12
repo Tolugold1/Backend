@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const Leader = require("../Model/leader")
+const Leader = require("../Model/leader");
+var authenticate = require("../authenticate");
 
 const leaderRouter = express.Router();
 
@@ -19,7 +20,7 @@ leaderRouter.route('/')
    .catch(err => next(err));
 })
 
-.post((req, res, next) => {
+.post(authenticate.verifyUser, (req, res, next) => {
    Leader.create(req.body)
    .then(leader => {
       res.statusCode = 200;
@@ -29,12 +30,12 @@ leaderRouter.route('/')
    .catch(err => next(err))
 })
 
-.put((req, res, next) => {
+.put(authenticate.verifyUser, (req, res, next) => {
    res.statusCode = 403;
    res.end("updating features for leader is disabled for the time being. We are sorry!!!")
 })
 
-.delete((req, res, next) => {
+.delete(authenticate.verifyUser, (req, res, next) => {
    Leader.remove({})
    .then(resp => {
       res.statusCode = 200;
@@ -56,12 +57,12 @@ leaderRouter.route("/:leaderId")
    .catch(err => next(err));
 })
 
-.post((req, res, next) => {
+.post(authenticate.verifyUser, (req, res, next) => {
    res.statusCode = 403;
    res.end("Posting features for leader is disabled for the time being. We are sorry!!!")
 })
 
-.put((req, res, next) => {
+.put(authenticate.verifyUser, (req, res, next) => {
    Leader.findById(req.params.leaderId, {
       $set: req.body }, {
          new: true
@@ -75,7 +76,7 @@ leaderRouter.route("/:leaderId")
    .catch(err => next(err))
 })
 
-.delete((req, res, next) => {
+.delete(authenticate.verifyUser, (req, res, next) => {
    Leader.remove(req.params.leaderId)
    .then(leader => {
       res.statusCode = 200;

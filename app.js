@@ -8,6 +8,7 @@ var session = require('express-session');
 var FileStorage = require("session-file-store")(session);
 var passport = require("passport");
 var authenticate = require("./authenticate");
+const config = require("./config")
 
 
 var indexRouter = require('./routes/index');
@@ -18,7 +19,7 @@ const promotionRouter = require("./routes/promotionRouter");
 
 var app = express();
 
-const url = "mongodb://localhost:27017/toluserver"
+const url = config.mongoUrl;
 
 mongoose.connect(url)
 .then((db) => {
@@ -33,13 +34,13 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 /* app.use(cookieParser("01234-56789-98765-43210")); */
-app.use(session({
+/* app.use(session({
   name: 'session_id',
   secret: "01234-56789-98765-43210",
   saveUninitialized: false,
   resave: false,
   store: new FileStorage(),
-}))
+})) */
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -47,7 +48,7 @@ app.use(passport.session());
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-const auth = (req, res, next) => {
+/* const auth = (req, res, next) => {
   console.log(req.user);
 
   if (!req.user) {
@@ -60,7 +61,7 @@ const auth = (req, res, next) => {
 }
 
 app.use(auth);
-
+ */
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/dishes', dishRouter);
