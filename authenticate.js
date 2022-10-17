@@ -40,13 +40,7 @@ exports.verifyAdmin = (req, res, next) => {
     User.findOne({_id: req.body._id})
     .then((user) => {
         if (req.user.admin === true) {
-            Dishes.remove({})
-            .then(resp => {
-                console.log("Dishes deleted successfully!");
-                res.statusCode = 200;
-                res.header("Content-Type", "application/json")
-                res.json({status: "You are authorize because you are an admin user",responce: resp});
-            }, (err) => next(err))
+            next()
         } else {
             err = new Error("Sorry!, you are not an admin user.");
             err.status = 401;

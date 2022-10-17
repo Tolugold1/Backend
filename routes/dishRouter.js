@@ -39,7 +39,15 @@ dishRouter.route("/")
     res.end("This method is not supported by the server yet.")
 })
 
-.delete(authenticate.verifyUser, authenticate.verifyAdmin)
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+    Dishes.remove({})
+    .then(resp => {
+        console.log("Dishes deleted successfully!");
+        res.statusCode = 200;
+        res.header("Content-Type", "application/json")
+        res.json({success: true, status: "You are authorize because you are an admin user",responce: resp});
+    }, (err) => next(err))
+})
 
 
 dishRouter.route("/:dishId")
