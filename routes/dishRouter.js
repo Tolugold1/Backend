@@ -2,7 +2,8 @@ var express = require("express");
 var mongoose = require("mongoose");
 var bodyParser = require("body-parser");
 var Dishes = require("../Model/dishes");
-var authenticate = require("../authenticate")
+var authenticate = require("../authenticate");
+var auth = require("../authAdmin")
 
 
 const dishRouter = express.Router();
@@ -11,7 +12,8 @@ dishRouter.use(bodyParser.json());
 dishRouter.route("/")
 
 .get((req, res, next) => {
-    Dishes.find({})
+    Dishes.find()
+    .populate("comments.author")
     .then(dishes => {
         console.log('Found dishes');
         res.statusCode = 200;
@@ -37,21 +39,13 @@ dishRouter.route("/")
     res.end("This method is not supported by the server yet.")
 })
 
-.delete(authenticate.verifyUser, (req, res, next) => {
-    Dishes.remove({})
-    .then(resp => {
-        console.log("Dishes deleted successfully!");
-        res.statusCode = 200;
-        res.header("Content-Type", "application/json")
-        res.json(resp);
-    }, (err) => next(err))
-    .catch(err => next(err))
-})
+.delete(authenticate.verifyUser, authenticate.verifyAdmin)
 
 
 dishRouter.route("/:dishId")
 .get((req, res, next) => {
     Dishes.findById(req.params.dishId)
+    .populate("comments.author")
     .then(dishes => {
         console.log('Found dishes');
         res.statusCode = 200;
@@ -96,6 +90,7 @@ dishRouter.route("/:dishId")
 dishRouter.route("/:dishId/comments")
 .get((req, res, next) => {
     Dishes.findById(req.params.dishId)
+    .populate("comments.author")
     .then(dishes => {
         if (dishes != null) {
             console.log('Found dishes');
@@ -112,15 +107,20 @@ dishRouter.route("/:dishId/comments")
 })
 
 .post(authenticate.verifyUser, (req, res, next) => {
-    Dishes.create(req.body)
+    Dishes.findById(req.params.dishId)
     .then(dish => {
         if (dish != null) {
+            req.body.author = req.user._id;
             dish.comments.push(req.body)
             dish.save()
             .then(dish => {
-                res.statusCode = 200;
-                res.header('Content-Type', 'application/json');
-                res.json(dish);
+                Dishes.findById(dish._id)
+                .populate("comments.author")
+                .then((dish) => {
+                    res.statusCode = 200;
+                    res.header('Content-Type', 'application/json');
+                    res.json(dish);
+                })
             }, (err) => next(err))
         } else {
             err = new Error('Dish ' + req.params.dishId + ' not found')
@@ -161,6 +161,7 @@ dishRouter.route("/:dishId/comments")
 dishRouter.route("/:dishId/comments/:commentId")
 .get((req, res, next) => {
     Dishes.findById(req.params.dishId)
+    .populate("comments.author")
     .then(dishes => {
         if (dishes != null && dishes.comments.id(req.params.commentId) != null) {
             console.log('Found dishes');
@@ -198,9 +199,13 @@ dishRouter.route("/:dishId/comments/:commentId")
             }
             dishes.save()
             .then(dishes => {
-                res.statusCode = 200;
-                res.header('Content-Type', 'application/json');
-                res.json(dishes);
+                Dishes.findById(dishes._id)
+                .populate("comments.author")
+                .then((dishes) => {
+                    res.statusCode = 200;
+                    res.header('Content-Type', 'application/json');
+                    res.json(dishes);
+                })
             }, (err) => next(err))
         } else if (dishes == null) {
             err = new Error('Dish ' + req.params.dishId + ' not found')
@@ -222,9 +227,13 @@ dishRouter.route("/:dishId/comments/:commentId")
                 dish.comments.id(req.params.commentId).remove();
                 dish.save()
                 .then(resp => {
-                    res.statusCode = 200;
-                    res.header("Content-Type", "application/json");
-                    res.json(resp);
+                    Dishes.findById(dish._id)
+                    .populate("comments.author")
+                    .then((dish) => {
+                        res.statusCode = 200;
+                        res.header("Content-Type", "application/json");
+                        res.json(resp);
+                    })
                 }, (err) => next(err));
         } else if (dish == null) {
             err = new Error('Dish ' + req.params.dishId + ' not found')
