@@ -16,11 +16,24 @@ var usersRouter = require('./routes/users');
 const dishRouter = require("./routes/dishRouter")
 const leaderRouter = require("./routes/leaderRouter");
 const promotionRouter = require("./routes/promotionRouter");
+const uploadRouter = require("./routes/uploadRouter");
+
 
 var app = express();
 
-const url = config.mongoUrl;
+/**
+ * secure traffic route
+ */
 
+app.all('*', (req, res, next) => {
+  if (req.secure) {
+    return next();
+  } else {
+    res.redirect(307, "https://" + req.hostname + ":" + app.get('secPort') + req.url);
+  }
+})
+
+const url = config.mongoUrl;
 mongoose.connect(url)
 .then((db) => {
   console.log("Connected to MongoDB successfully!");
@@ -67,6 +80,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/dishes', dishRouter);
 app.use('/leader', leaderRouter);
 app.use('/promotion', promotionRouter);
+app.use('/imageUpload', uploadRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const Promotion = require("../Model/promotions");
 var authenticate = require("../authenticate");
+const { verify } = require('jsonwebtoken');
 
 const promotionRouter = express.Router();
 
@@ -19,7 +20,7 @@ promotionRouter.route('/')
    .catch(err => next(err));
 })
 
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
    Promotion.create(req.body)
    .then(promotion => {
       res.statusCode = 200;
@@ -29,12 +30,12 @@ promotionRouter.route('/')
    .catch(err => next(err))
 })
 
-.put(authenticate.verifyUser, (req, res, next) => {
+.put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
    res.statusCode = 403;
    res.end("updating features for leader is disabled for the time being. We are sorry!!!")
 })
 
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
    Promotion.remove({})
    .then(resp => {
       res.statusCode = 200;
@@ -56,13 +57,13 @@ promotionRouter.route("/:promotionId")
    .catch(err => next(err));
 })
 
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
    res.statusCode = 403;
    res.end("Posting features for leader is disabled for the time being. We are sorry!!!")
 })
 
-.put(authenticate.verifyUser, (req, res, next) => {
-   Promotion.findById(req.params.promotionId, {
+.put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+   Promotion.findByIdAndUpdate(req.params.promotionId, {
       $set: req.body }, {
          new: true
       }
@@ -75,8 +76,8 @@ promotionRouter.route("/:promotionId")
    .catch(err => next(err))
 })
 
-.delete(authenticate.verifyUser, (req, res, next) => {
-   Promotion.remove(req.params.promotionId)
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+   Promotion.findByIdAndRemove(req.params.promotionId)
    .then(promotion => {
       res.statusCode = 200;
       res.header("Content-Type", "application/json");

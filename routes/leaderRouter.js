@@ -20,7 +20,7 @@ leaderRouter.route('/')
    .catch(err => next(err));
 })
 
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
    Leader.create(req.body)
    .then(leader => {
       res.statusCode = 200;
@@ -30,12 +30,12 @@ leaderRouter.route('/')
    .catch(err => next(err))
 })
 
-.put(authenticate.verifyUser, (req, res, next) => {
+.put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
    res.statusCode = 403;
    res.end("updating features for leader is disabled for the time being. We are sorry!!!")
 })
 
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
    Leader.remove({})
    .then(resp => {
       res.statusCode = 200;
@@ -57,13 +57,13 @@ leaderRouter.route("/:leaderId")
    .catch(err => next(err));
 })
 
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
    res.statusCode = 403;
    res.end("Posting features for leader is disabled for the time being. We are sorry!!!")
 })
 
-.put(authenticate.verifyUser, (req, res, next) => {
-   Leader.findById(req.params.leaderId, {
+.put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+   Leader.findByIdAndUpdate(req.params.leaderId, {
       $set: req.body }, {
          new: true
       }
@@ -76,8 +76,8 @@ leaderRouter.route("/:leaderId")
    .catch(err => next(err))
 })
 
-.delete(authenticate.verifyUser, (req, res, next) => {
-   Leader.remove(req.params.leaderId)
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+   Leader.findByIdAndRemove(req.params.leaderId)
    .then(leader => {
       res.statusCode = 200;
       res.header("Content-Type", "application/json");
