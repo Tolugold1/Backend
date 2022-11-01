@@ -2,15 +2,16 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const Promotion = require("../Model/promotions");
 var authenticate = require("../authenticate");
-const { verify } = require('jsonwebtoken');
+const cors = require("./cors")
 
 const promotionRouter = express.Router();
 
 promotionRouter.use(bodyParser.json());
 
 promotionRouter.route('/')
+.options(cors.corsWithOptions, (req, res) => {res.sendStatus(200)})
 
-.get((req, res, next) => {
+.get(cors.cors, (req, res, next) => {
    Promotion.find()
    .then(promotion => {
       res.statusCode = 200;
@@ -20,7 +21,7 @@ promotionRouter.route('/')
    .catch(err => next(err));
 })
 
-.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
    Promotion.create(req.body)
    .then(promotion => {
       res.statusCode = 200;
@@ -30,12 +31,12 @@ promotionRouter.route('/')
    .catch(err => next(err))
 })
 
-.put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
    res.statusCode = 403;
    res.end("updating features for leader is disabled for the time being. We are sorry!!!")
 })
 
-.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
    Promotion.remove({})
    .then(resp => {
       res.statusCode = 200;
@@ -46,8 +47,9 @@ promotionRouter.route('/')
 });
 
 promotionRouter.route("/:promotionId")
+.options(cors.corsWithOptions, (req, res) => {res.sendStatus(200)})
 
-.get((req, res, next) => {
+.get(cors.cors, (req, res, next) => {
    Promotion.findById(req.params.promotionId)
    .then(promotion => {
       res.statusCode = 200;
@@ -57,12 +59,12 @@ promotionRouter.route("/:promotionId")
    .catch(err => next(err));
 })
 
-.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
    res.statusCode = 403;
    res.end("Posting features for leader is disabled for the time being. We are sorry!!!")
 })
 
-.put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
    Promotion.findByIdAndUpdate(req.params.promotionId, {
       $set: req.body }, {
          new: true
@@ -76,7 +78,7 @@ promotionRouter.route("/:promotionId")
    .catch(err => next(err))
 })
 
-.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
    Promotion.findByIdAndRemove(req.params.promotionId)
    .then(promotion => {
       res.statusCode = 200;
